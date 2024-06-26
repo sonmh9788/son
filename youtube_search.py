@@ -11,7 +11,6 @@ class MainApp(QWidget):
         super().__init__()
         loadUi('YouTube Search & Hospital Search.ui', self)
         
-        # UI 요소 불러오기
         self.radio_neck = self.findChild(QRadioButton, 'radio_neck')
         self.radio_shoulder = self.findChild(QRadioButton, 'radio_shoulder')
         self.radio_back = self.findChild(QRadioButton, 'radio_back')
@@ -26,7 +25,6 @@ class MainApp(QWidget):
         self.details_text_edit = self.findChild(QTextEdit, 'details_text_edit')
         self.progress_bar = self.findChild(QProgressBar, 'progress_bar')
         
-        # 아픈 부위와 대응하는 유튜브 링크 사전 설정
         self.links = {
             '목': 'https://youtube.com/shorts/0i7kJodD4ws?si=7kVoehH3rYr9RLSs',
             '어깨': 'https://youtu.be/PfERed6LRmQ?si=zrGGF1wd_FakqOSU',
@@ -37,7 +35,6 @@ class MainApp(QWidget):
             '발목': 'https://youtu.be/WEaCwo2peFc?si=XGRNyOIvghHUzyqO'
         }
 
-        # 라디오버튼이 클릭될 때 change_link 메서드 호출
         self.radio_neck.toggled.connect(self.change_link)
         self.radio_shoulder.toggled.connect(self.change_link)
         self.radio_back.toggled.connect(self.change_link)
@@ -46,16 +43,13 @@ class MainApp(QWidget):
         self.radio_wrist.toggled.connect(self.change_link)
         self.radio_ankle.toggled.connect(self.change_link)
         
-        # 검색 버튼 클릭 시 search_hospitals 메서드 호출
         self.search_button.clicked.connect(self.search_hospitals)
         self.result_list_widget.itemClicked.connect(self.show_place_details)
         
-        # Google Places API 키 설정
         self.api_key = 'AIzaSyArVa1Tg_FqURhYfGFAc4iF6_hhyoeYCo0'
-        self.max_results = 5  # 검색 결과의 최대 개수 설정
+        self.max_results = 5  
     
     def change_link(self):
-        # 선택된 라디오버튼을 찾아 해당 부위의 유튜브 링크를 가져오기
         url = ''
         if self.radio_neck.isChecked():
             url = self.links['목']
@@ -72,22 +66,18 @@ class MainApp(QWidget):
         elif self.radio_ankle.isChecked():
             url = self.links['발목']
 
-        # QWebEngineView에서 URL 열기
         if url:
             self.web_engine_view.setUrl(QUrl(url))
         else:
             self.web_engine_view.setUrl(QUrl('about:blank'))
 
     def search_hospitals(self):
-        # 입력된 주소 가져오기
         address = self.address_line_edit.text()
         
-        # 주소를 기반으로 위도와 경도 가져오기
         geocode_url = f'https://maps.googleapis.com/maps/api/geocode/json?address={address}&key={self.api_key}'
         
-        # 로딩 시작
-        self.progress_bar.setRange(0, 0)  # Indeterminate mode
-        QApplication.processEvents()  # GUI 업데이트
+        self.progress_bar.setRange(0, 0) 
+        QApplication.processEvents() 
         
         response = requests.get(geocode_url)
         if response.status_code != 200:
@@ -105,7 +95,6 @@ class MainApp(QWidget):
         latitude = location['lat']
         longitude = location['lng']
         
-        # 근처 병원 검색
         places_url = f'https://maps.googleapis.com/maps/api/place/nearbysearch/json?location={latitude},{longitude}&rankby=distance&type=hospital&keyword=정형외과&key={self.api_key}'
         
         response = requests.get(places_url)
@@ -126,19 +115,15 @@ class MainApp(QWidget):
             item.setData(Qt.UserRole, place['place_id'])
             count += 1
         
-        # 로딩 완료 후 프로그레스 바 리셋
         self.progress_bar.reset()
     
     def show_place_details(self, item):
-        # 선택된 병원의 place_id 가져오기
         place_id = item.data(Qt.UserRole)
         
-        # 병원 상세 정보 가져오기
         details_url = f'https://maps.googleapis.com/maps/api/place/details/json?place_id={place_id}&key={self.api_key}'
         
-        # 로딩 시작
-        self.progress_bar.setRange(0, 0)  # Indeterminate mode
-        QApplication.processEvents()  # GUI 업데이트
+        self.progress_bar.setRange(0, 0)
+        QApplication.processEvents() 
         
         response = requests.get(details_url)
         if response.status_code != 200:
@@ -159,13 +144,11 @@ class MainApp(QWidget):
         rating = result.get('rating', 'N/A')
         hours = result.get('opening_hours', {}).get('weekday_text', [])
         
-        # 병원 상세 정보 표시
         details = f'Name: {name}\nAddress: {address}\nPhone: {phone}\nRating: {rating}\n\nHours:\n'
         details += '\n'.join(hours) if hours else 'No hours available'
         
         self.details_text_edit.setText(details)
         
-        # 로딩 완료 후 프로그레스 바 리셋
         self.progress_bar.reset()
 
 
